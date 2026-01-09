@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Translation & Review Scheduler</title>
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Segoe UI, Arial, sans-serif;
+            margin: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        header {
+            background-color: #0078d4;
+            color: white;
+            padding: 15px 30px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        header p {
+            margin: 3px 0 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 25px auto 40px auto;
+            background-color: white;
+            padding: 20px 25px 30px 25px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+            border-radius: 4px;
+        }
+        .subcontainer {
+            max-width: 1100px;
+            margin: 5px;
+            background-color: #f7f7f7;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .row {
+            overflow: hidden;
+            padding: 10px;
+        }
+        .col {
+            float: left;
+            width: 40%;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 4px;
+        }
+        h3 {
+            font-size: 15px;
+            margin-top: 18px;
+        }
+        label {
+            display: inline;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        input {
+            width: 160px;
+            padding: 5px 7px;
+            margin-top: 3px;
+            font-size: 13px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            float: right;
+        }
+        .input-group {
+            min-width: 230px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 7px 16px;
+            font-size: 13px;
+            border-radius: 3px;
+            border: none;
+            background-color: #0078d4;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button.secondary {
+            background-color: #f3f3f3;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+        button.secondary:hover {
+            background-color: #e5e5e5;
+        }
+        .error {
+            margin-top: 10px;
+            padding: 8px 10px;
+            border-radius: 3px;
+            background-color: #fde7e9;
+            color: #a80000;
+            font-size: 13px;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 12px 15px;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .summary p {
+            margin: 4px 0;
+        }
+        .charts {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 800px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 10px;
+            width: 100%;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 4px 5px;
+            text-align: right;
+        }
+        th {
+            background: #fafafa;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        td:first-child, th:first-child {
+            text-align: left;
+        }
+        .schedule-container {
+            margin-top: 20px;
+        }
+        .schedule-table-wrapper {
+            max-height: 400px;
+            overflow: auto;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-top: 8px;
+        }
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            padding: 10px 0 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Translation &amp; Review Scheduler</h1>
+    <p>Estimate time to deliver based on team size, productivity, and incoming work.</p>
+</header>
+
+<div class="container">
+    <h2>Inputs</h2>
+
+        <div class="row">
+            <div class="col">
+                <label># Translators</label>
+                <input id="translators" type="number" value="0" min="0">
+            </div>
+            <div class="col">
+                <label># Reviewers</label>
+                <input id="reviewers" type="number" value="0" min="0">
+            </div>
+        </div>
+    <div class="subcontainer">
+        <div class="row">
+            <div class="col">
+                <label>Translator productivity (words/day/person)</label>
+                <input id="tp" type="number" value="0" min="0">
+            </div>
+            <div class="col">
+                <label>Reviewer productivity (words/day/person)</label>
+                <input id="rp" type="number" value="0" min="0">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Current untranslated volume (words)</label>
+                <input id="tVolume" type="number" value="0" min="0">
+            </div>
+            <div class="col">
+                <label>Current review volume (words)</label>
+                <input id="rVolume" type="number" value="0" min="0">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Baseline incoming words per day</label>
+                <input id="incoming" type="number" value="0" min="0">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>How many days should we look ahead?</label>
+                <input id="days" type="number" value="20" min="1">
+            </div>
+        </div>
+    </div>
+        <div class="row">
+            <div class="col">
+                <label>Start date (optional, defaults to today)</label>
+                <input id="startDate" type="date">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <button onclick="runSimulation()">Run Simulation</button>
+                <br>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display:none;"></div>
+        <div id="summary" class="summary" style="display:none;"></div>
+        <div class="charts" id="chartsSection" style="display:none;">
+            <div>
+                <br>
+                <h2>Translator volume over time</h2>
+                <canvas id="translatorChart"></canvas>
+            </div>
+            <div>
+                <br><br>
+                <h2>Review volume over time</h2>
+                <canvas id="reviewChart"></canvas>
+            </div>
+        </div>
+
+    <div class="schedule-container" id="scheduleSection" style="display:none;">
+        <h2>
+            <br>
+            Daily schedule
+            <button class="secondary" id="toggleScheduleBtn" onclick="toggleSchedule()">Hide schedule</button>
+        </h2>
+        <div class="schedule-table-wrapper" id="scheduleWrapper">
+            <table id="scheduleTable"></table>
+        </div>
+    </div>
+
+
+<script>
+    let translatorChartInstance = null;
+    let reviewChartInstance = null;
+
+    function showError(message) {
+        const errDiv = document.getElementById("error");
+        errDiv.style.display = "block";
+        errDiv.textContent = message;
+    }
+
+    function clearError() {
+        const errDiv = document.getElementById("error");
+        errDiv.style.display = "none";
+        errDiv.textContent = "";
+    }
+
+    function validateInputs() {
+        const fields = [
+            { id: "translators", label: "# Translators", min: 0 },
+            { id: "reviewers", label: "# Reviewers", min: 0 },
+            { id: "tp", label: "Translator productivity", min: 0 },
+            { id: "rp", label: "Reviewer productivity", min: 0 },
+            { id: "tVolume", label: "Untranslated volume", min: 0 },
+            { id: "rVolume", label: "Review volume", min: 0 },
+            { id: "incoming", label: "Baseline incoming words/day", min: 0 },
+            { id: "days", label: "How many days should we look ahead?", min: 1 }
+        ];
+
+        for (const f of fields) {
+            const el = document.getElementById(f.id);
+            const val = el.value.trim();
+            if (val === "") {
+                showError(`Please enter a value for "${f.label}".`);
+                el.focus();
+                return false;
+            }
+            const num = Number(val);
+            if (isNaN(num) || num < f.min) {
+                showError(`"${f.label}" must be a number ≥ ${f.min}.`);
+                el.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function toggleSchedule() {
+        const wrapper = document.getElementById("scheduleWrapper");
+        const btn = document.getElementById("toggleScheduleBtn");
+        if (wrapper.style.display === "none") {
+            wrapper.style.display = "block";
+            btn.textContent = "Hide schedule";
+        } else {
+            wrapper.style.display = "none";
+            btn.textContent = "Show schedule";
+        }
+    }
+
+    function runSimulation() {
+        clearError();
+        if (!validateInputs()) {
+            return;
+        }
+
+        const translators = +document.getElementById("translators").value;
+        const reviewers = +document.getElementById("reviewers").value;
+        const tp = +document.getElementById("tp").value;
+        const rp = +document.getElementById("rp").value;
+        const incoming = +document.getElementById("incoming").value;
+        const simDays = +document.getElementById("days").value;
+
+        let tVolume = +document.getElementById("tVolume").value;
+        let rVolume = +document.getElementById("rVolume").value;
+
+
+	const startDateInput = document.getElementById("startDate").value;
+	// Parse "YYYY-MM-DD" as a LOCAL date (midnight in the user's timezone)
+	function parseLocalYMD(ymd) {
+	if (!ymd) return new Date(); // default to today (local)
+	const [y, m, d] = ymd.split("-").map(Number);
+	return new Date(y, m - 1, d); // months are 0-based; this is local time
+}
+
+let startDate = parseLocalYMD(startDateInput);
+
+        const tCap = translators * tp;
+        const rCap = reviewers * rp;
+
+        let finishDate = null;
+        let totalDelta = 0;
+        let reviewIncoming = 0;
+
+        const labels = [];
+        const tVolumeSeries = [];
+        const rVolumeSeries = [];
+
+        let tableHtml = `
+            <tr>
+                <th>Date</th>
+                <th>Working?</th>
+                <th>Incoming</th>
+                <th>T Capacity</th>
+                <th>T Volume Start</th>
+                <th>T Work</th>
+                <th>T Volume End</th>
+                <th>R Volume Start</th>
+                <th>Review Incoming</th>
+                <th>R Capacity</th>
+                <th>R Work</th>
+                <th>R Volume End</th>
+            </tr>
+        `;
+
+        for (let i = 0; i < simDays; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+
+            const dayOfWeek = date.getDay();
+            const working = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 1 : 0;
+
+            const dateStr = date.toISOString().split("T")[0];
+
+            const tStart = tVolume;
+            const rStart = rVolume;
+
+            const tWork = working ? Math.min(tCap, tVolume) : 0;
+            const rWork = working ? Math.min(rCap, rVolume + reviewIncoming) : 0;
+
+            const tEnd = tVolume - tWork + incoming;
+            const rEnd = rVolume + reviewIncoming - rWork;
+
+            totalDelta += (incoming - tWork);
+
+            labels.push(dateStr);
+            tVolumeSeries.push(Math.max(tEnd, 0));
+            rVolumeSeries.push(Math.max(rEnd, 0));
+
+            tableHtml += `
+                <tr>
+                    <td>${dateStr}</td>
+                    <td>${working}</td>
+                    <td>${incoming}</td>
+                    <td>${tCap}</td>
+                    <td>${tStart}</td>
+                    <td>${tWork}</td>
+                    <td>${tEnd}</td>
+                    <td>${rStart}</td>
+                    <td>${reviewIncoming}</td>
+                    <td>${rCap}</td>
+                    <td>${rWork}</td>
+                    <td>${rEnd}</td>
+                </tr>
+            `;
+
+            tVolume = tEnd;
+            rVolume = rEnd;
+            reviewIncoming = tWork;
+
+            if (!finishDate && tEnd <= 0 && rEnd <= 0) {
+                finishDate = dateStr;
+            }
+        }
+
+        const avgDelta = totalDelta / simDays;
+
+        const summaryDiv = document.getElementById("summary");
+        summaryDiv.style.display = "block";
+        summaryDiv.innerHTML = `
+            <h2>Summary</h2>
+            <div class="row"><strong>Projected finish date:</strong> ${finishDate || "Not within simulation window"}</div>
+            <div class="row"><strong>Avg daily net translator volume change (Δ):</strong> ${avgDelta.toFixed(2)} words/day</div>
+            <div class="row"><strong>Daily translator capacity:</strong> ${tCap} words/day</div>
+            <div class="row"><strong>Daily review capacity:</strong> ${rCap} words/day</div>
+            <div class="row"><strong>Baseline incoming words per day:</strong> ${incoming}</div>
+            <p style="margin-top:8px; font-size:12px; color:#555;">
+               Working days are Monday–Friday. Weekends have 0 capacity but still receive incoming work.
+            </div>
+        `;
+
+        const scheduleTable = document.getElementById("scheduleTable");
+        scheduleTable.innerHTML = tableHtml;
+        document.getElementById("scheduleSection").style.display = "block";
+        document.getElementById("scheduleWrapper").style.display = "block";
+        document.getElementById("toggleScheduleBtn").textContent = "Hide schedule";
+
+        const chartsSection = document.getElementById("chartsSection");
+        chartsSection.style.display = "block";
+
+        const translatorCtx = document.getElementById("translatorChart").getContext("2d");
+        const reviewCtx = document.getElementById("reviewChart").getContext("2d");
+
+        if (translatorChartInstance) {
+            translatorChartInstance.destroy();
+        }
+        if (reviewChartInstance) {
+            reviewChartInstance.destroy();
+        }
+
+        translatorChartInstance = new Chart(translatorCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Translator volume (words)',
+                    data: tVolumeSeries,
+                    borderColor: '#0078d4',
+                    backgroundColor: 'rgba(0,120,212,0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.15
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    x: { ticks: { maxTicksLimit: 10 } },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        reviewChartInstance = new Chart(reviewCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Review volume (words)',
+                    data: rVolumeSeries,
+                    borderColor: '#107c10',
+                    backgroundColor: 'rgba(16,124,16,0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.15
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    x: { ticks: { maxTicksLimit: 10 } },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
