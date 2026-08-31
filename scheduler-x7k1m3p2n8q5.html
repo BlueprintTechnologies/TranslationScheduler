@@ -171,7 +171,7 @@
 
 <header>
     <h1>Translation &amp; Review Scheduler</h1>
-    <p>Estimate time to deliver based on team size, productivity, and incoming work.</p>
+    <p>Forecast translation and review workload based on team capacity, backlog, and incoming work.</p>
 </header>
 
 <div class="container">
@@ -179,57 +179,93 @@
 
         <div class="row">
             <div class="col">
-                <label># Translators</label>
-                <input id="translators" type="number" value="0" min="0">
+                <label>Number of Translators
+                <span
+                title="Number of translators working on this backlog.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
+                style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
+                <input id="translators" type="number" value="1" min="0" step="0.1">
             </div>
             <div class="col">
-                <label># Reviewers</label>
-                <input id="reviewers" type="number" value="0" min="0">
+                <label>Number of Reviewers
+                <span
+                    title="Number of reviewers working on this backlog.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
+                <input id="reviewers" type="number" value="1" min="0" step="0.1">
             </div>
         </div>
     <div class="subcontainer">
         <div class="row">
             <div class="col">
-                <label>Translator productivity (words/day/person)</label>
-                <input id="tp" type="number" value="0" min="0">
+                <label>Translation throughput
+                <span
+                    title="Average translation throughput per translator.&#10;&#10;Default: 2,000 words per day.&#10;&#10;Adjust as needed if you have more accurate productivity data."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
+                <input id="tp" type="number" value="2000" min="0">
             </div>
             <div class="col">
-                <label>Reviewer productivity (words/day/person)</label>
-                <input id="rp" type="number" value="0" min="0">
+                <label>Review throughput
+                <span
+                    title="Average review throughput per reviewer.&#10;&#10;Default: 4,000 words per day.&#10;&#10;Adjust as needed if you have more accurate productivity data."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
+                <input id="rp" type="number" value="4000" min="0">
             </div>
         </div>
         <div class="row">
             <div class="col">
-                <label>Current untranslated volume (words)</label>
+                <label>Translation backlog
+                <span
+                    title="The number of untranslated words waiting to be worked on at the start of the forecast."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
                 <input id="tVolume" type="number" value="0" min="0">
             </div>
             <div class="col">
-                <label>Current review volume (words)</label>
+                <label>Review backlog
+                <span
+                    title="The number of translated words that are waiting for review at the start of the forecast.&#10;&#10;Leave this value at 0 if no translated content is currently awaiting review."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
                 <input id="rVolume" type="number" value="0" min="0">
             </div>
         </div>
         <div class="row">
             <div class="col">
-                <label>Baseline incoming words per day</label>
+                <label>Incoming words per day
+                <span
+                    title="New work added each day during the forecast period. For example, if 1000 words arrive daily, enter 1000.&#10;&#10;If you're only looking at existing known translation volume, leave this value at 0."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
                 <input id="incoming" type="number" value="0" min="0">
             </div>
         </div>
         <div class="row">
             <div class="col">
-                <label>How many days should we look ahead?</label>
+                <label>Forecast period (days)
+                <span
+                    title="The number of calendar days to include in the forecast.&#10;&#10;Increase this value if the translation backlog is not expected to be cleared within the current forecast period."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
                 <input id="days" type="number" value="20" min="1">
             </div>
         </div>
     </div>
         <div class="row">
             <div class="col">
-                <label>Start date (optional, defaults to today)</label>
+                <label>Start date
+                <span
+                    title="The first day of the forecast.&#10;&#10;If left blank, the start date is today."
+                    style="cursor:help;color:#0078d4;">ⓘ</span>
+                </label>
                 <input id="startDate" type="date">
             </div>
         </div>
         <div class="row">
             <div class="col">
-                <button onclick="runSimulation()">Run Simulation</button>
+                <button onclick="runForecast()">Run Forecast</button>
                 <br>
             </div>
         </div>
@@ -239,12 +275,30 @@
         <div class="charts" id="chartsSection" style="display:none;">
             <div>
                 <br>
-                <h2>Translator volume over time</h2>
+                <h2>Translation Backlog Over Time
+                <span
+                    title="Shows how the translation backlog is expected to change over time.&#10;&#10;A downward trend indicates the backlog is being reduced.&#10;An upward trend indicates new work is arriving faster than it can be translated."
+                    style="cursor:help;color:#0078d4;"
+                >
+                    ⓘ
+                </span>
+                </h2>
                 <canvas id="translatorChart"></canvas>
             </div>
             <div>
                 <br><br>
-                <h2>Review volume over time</h2>
+                <h2>Review Queue Over Time
+                <span
+                    title="Shows how the review backlog is expected to change over time.
+                    &#10;A downward trend indicates the review queue is shrinking.
+                    &#10;A value of 0 means reviewers have no waiting work. It does not necessarily mean all translation work has been completed.
+                    &#10;An upward trend indicates the review queue is growing.
+                    &#10;&#10;Translation completed on a given day becomes available for review on the following workday."
+                    style="cursor:help;color:#0078d4;"
+                >
+                    ⓘ
+                </span>
+                </h2>
                 <canvas id="reviewChart"></canvas>
             </div>
         </div>
@@ -279,14 +333,14 @@
 
     function validateInputs() {
         const fields = [
-            { id: "translators", label: "# Translators", min: 0 },
-            { id: "reviewers", label: "# Reviewers", min: 0 },
+            { id: "translators", label: "Number of Translators", min: 0 },
+            { id: "reviewers", label: "Number of Reviewers", min: 0 },
             { id: "tp", label: "Translator productivity", min: 0 },
             { id: "rp", label: "Reviewer productivity", min: 0 },
             { id: "tVolume", label: "Untranslated volume", min: 0 },
             { id: "rVolume", label: "Review volume", min: 0 },
-            { id: "incoming", label: "Baseline incoming words/day", min: 0 },
-            { id: "days", label: "How many days should we look ahead?", min: 1 }
+            { id: "incoming", label: "Incoming words per day", min: 0 },
+            { id: "days", label: "Forecast period (days)", min: 1 }
         ];
 
         for (const f of fields) {
@@ -319,7 +373,7 @@
         }
     }
 
-    function runSimulation() {
+    function runForecast() {
         clearError();
         if (!validateInputs()) {
             return;
@@ -334,7 +388,10 @@
 
         let tVolume = +document.getElementById("tVolume").value;
         let rVolume = +document.getElementById("rVolume").value;
-
+        
+        const initialBacklog = tVolume;
+        let remainingOriginalBacklog = initialBacklog;
+        let currentBacklogCompletionDate = null;
 
 	const startDateInput = document.getElementById("startDate").value;
 	// Parse "YYYY-MM-DD" as a LOCAL date (midnight in the user's timezone)
@@ -348,6 +405,9 @@ let startDate = parseLocalYMD(startDateInput);
 
         const tCap = translators * tp;
         const rCap = reviewers * rp;
+        
+        const netCapacity = tCap - incoming;
+        const reviewNetCapacity = rCap - tCap;
 
         let finishDate = null;
         let totalDelta = 0;
@@ -362,15 +422,15 @@ let startDate = parseLocalYMD(startDateInput);
                 <th>Date</th>
                 <th>Working?</th>
                 <th>Incoming</th>
-                <th>T Capacity</th>
-                <th>T Volume Start</th>
-                <th>T Work</th>
-                <th>T Volume End</th>
-                <th>R Volume Start</th>
+                <th>Translation Capacity</th>
+                <th>Translation Volume Start</th>
+                <th>Translation Work</th>
+                <th>Translation Volume End</th>
+                <th>Review Volume Start</th>
                 <th>Review Incoming</th>
-                <th>R Capacity</th>
-                <th>R Work</th>
-                <th>R Volume End</th>
+                <th>Review Capacity</th>
+                <th>Review Work</th>
+                <th>Review Volume End</th>
             </tr>
         `;
 
@@ -379,7 +439,7 @@ let startDate = parseLocalYMD(startDateInput);
             date.setDate(startDate.getDate() + i);
 
             const dayOfWeek = date.getDay();
-            const working = (dayOfWeek !== 0 && dayOfWeek !== 6) ? 1 : 0;
+            const working = (dayOfWeek !== 0 && dayOfWeek !== 6);
 
             const dateStr = date.toISOString().split("T")[0];
 
@@ -387,10 +447,19 @@ let startDate = parseLocalYMD(startDateInput);
             const rStart = rVolume;
 
             const tWork = working ? Math.min(tCap, tVolume) : 0;
+            if (remainingOriginalBacklog > 0) {
+                remainingOriginalBacklog -= tWork;
+                if (
+                    !currentBacklogCompletionDate &&
+                    remainingOriginalBacklog <= 0
+                ) {
+                    currentBacklogCompletionDate = dateStr;
+                }
+            }
             const rWork = working ? Math.min(rCap, rVolume + reviewIncoming) : 0;
 
-            const tEnd = tVolume - tWork + incoming;
-            const rEnd = rVolume + reviewIncoming - rWork;
+            const tEnd = Math.max(tVolume - tWork + incoming, 0);
+            const rEnd = Math.max(rVolume + reviewIncoming - rWork, 0);
 
             totalDelta += (incoming - tWork);
 
@@ -401,7 +470,7 @@ let startDate = parseLocalYMD(startDateInput);
             tableHtml += `
                 <tr>
                     <td>${dateStr}</td>
-                    <td>${working}</td>
+                    <td>${working ? "Yes" : "No"}</td>
                     <td>${incoming}</td>
                     <td>${tCap}</td>
                     <td>${tStart}</td>
@@ -417,6 +486,7 @@ let startDate = parseLocalYMD(startDateInput);
 
             tVolume = tEnd;
             rVolume = rEnd;
+            // Translation completed today becomes available for review on the following workday.
             reviewIncoming = tWork;
 
             if (!finishDate && tEnd <= 0 && rEnd <= 0) {
@@ -424,21 +494,106 @@ let startDate = parseLocalYMD(startDateInput);
             }
         }
 
-        const avgDelta = totalDelta / simDays;
-
         const summaryDiv = document.getElementById("summary");
-        summaryDiv.style.display = "block";
-        summaryDiv.innerHTML = `
-            <h2>Summary</h2>
-            <div class="row"><strong>Projected finish date:</strong> ${finishDate || "Not within simulation window"}</div>
-            <div class="row"><strong>Avg daily net translator volume change (Δ):</strong> ${avgDelta.toFixed(2)} words/day</div>
-            <div class="row"><strong>Daily translator capacity:</strong> ${tCap} words/day</div>
-            <div class="row"><strong>Daily review capacity:</strong> ${rCap} words/day</div>
-            <div class="row"><strong>Baseline incoming words per day:</strong> ${incoming}</div>
-            <p style="margin-top:8px; font-size:12px; color:#555;">
-               Working days are Monday–Friday. Weekends have 0 capacity but still receive incoming work.
-            </div>
-        `;
+summaryDiv.style.display = "block";
+
+summaryDiv.innerHTML = `
+    <h2>Summary</h2>
+
+${
+    incoming === 0
+        ? `
+        <div class="row">
+            <strong>Estimated backlog completion:</strong>
+            ${
+                finishDate
+                    ? finishDate
+                    : `Not within the next ${simDays} days`
+            }
+        </div>
+        `
+        : `
+        <div class="row">
+            <strong>Workload status:</strong>
+            ${
+                netCapacity > 0
+                    ? `✅ Team capacity exceeds incoming work by ${netCapacity.toLocaleString()} words/day`
+                    : netCapacity < 0
+                        ? `⚠️ Incoming work exceeds capacity by ${Math.abs(netCapacity).toLocaleString()} words/day`
+                        : `➖ Capacity matches incoming work`
+            }
+        </div>
+
+        <div class="row">
+            <strong>Current backlog completion:</strong>
+           ${
+               initialBacklog === 0
+                    ? "No existing backlog"
+                    : currentBacklogCompletionDate
+                        ? currentBacklogCompletionDate
+                        : `Not within the next ${simDays} days`
+            }
+        </div>
+        `
+}
+    
+    <div class="row">
+        ${
+            netCapacity > 0
+                ? `<span style="color:#107c10;font-weight:bold;">✅ Translation backlog can shrink by up to ${netCapacity.toFixed(0)} words/day</span>`
+                : netCapacity < 0
+                    ? `<span style="color:#d83b01;font-weight:bold;">⚠️ Translation backlog will grow by ${Math.abs(netCapacity).toFixed(0)} words/day</span>`
+                    : `<span style="color:#605e5c;font-weight:bold;">➖ Translation capacity exactly matches incoming work</span>`
+        }
+    </div>
+
+    <div class="row">
+    <strong>Workflow bottleneck:</strong>
+    ${
+        tCap < rCap
+            ? "Translation"
+            : rCap < tCap
+                ? "Review"
+                : "Balanced"
+    }
+</div>
+    <div class="row">
+    ${
+        tCap < rCap
+            ? `✅ Reviewers can keep up with translation output`
+            : rCap < tCap
+                ? `⚠️ Reviewers may become a bottleneck`
+                : `➖ Translation and review capacity are balanced`
+    }
+</div>
+    <div class="row">
+        <strong>Workflow assumption:</strong>
+            Translation completed on a given day becomes available for review on the next day.
+</div>
+    <div class="row">
+        <strong>Translation capacity:</strong>
+        ${tCap.toLocaleString()} words/day
+    </div>
+
+    <div class="row">
+        <strong>Review capacity:</strong>
+        ${rCap.toLocaleString()} words/day
+    </div>
+
+    <div class="row">
+        <strong>Incoming work:</strong>
+        ${incoming.toLocaleString()} words/day
+    </div>
+
+    <div class="row">
+        <strong>Net capacity:</strong>
+        ${netCapacity.toLocaleString()} words/day
+    </div>
+
+    <p style="margin-top:8px; font-size:12px; color:#555;">
+        Working days are Monday–Friday. Weekends have 0 capacity but still receive incoming work.
+    </p>
+`;
 
         const scheduleTable = document.getElementById("scheduleTable");
         scheduleTable.innerHTML = tableHtml;
@@ -490,7 +645,7 @@ let startDate = parseLocalYMD(startDateInput);
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Review volume (words)',
+                    label: 'Review queue (words)',
                     data: rVolumeSeries,
                     borderColor: '#107c10',
                     backgroundColor: 'rgba(16,124,16,0.1)',
