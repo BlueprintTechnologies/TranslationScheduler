@@ -1,672 +1,420 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="UTF-8" />
-    <title>Translation & Review Scheduler</title>
-    <!-- Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Translation Planning Assistant</title>
     <style>
         body {
             font-family: Segoe UI, Arial, sans-serif;
+            background: #f4f6f9;
             margin: 0;
-            background-color: #f5f5f5;
-            color: #333;
+            padding: 30px
         }
-        header {
-            background-color: #0078d4;
-            color: white;
-            padding: 15px 30px;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 22px;
-        }
-        header p {
-            margin: 3px 0 0 0;
-            font-size: 13px;
-            opacity: 0.9;
-        }
+
         .container {
-            max-width: 1100px;
-            margin: 25px auto 40px auto;
-            background-color: white;
-            padding: 20px 25px 30px 25px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-            border-radius: 4px;
+            max-width: 1200px;
+            margin: auto
         }
-        .subcontainer {
-            max-width: 1100px;
-            margin: 5px;
-            background-color: #f7f7f7;
-            border: 1px solid #ddd;
-            border-radius: 3px;
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .1)
         }
-        .row {
-            overflow: hidden;
-            padding: 10px;
+
+        .hidden {
+            display: none
         }
-        .col {
-            float: left;
-            width: 40%;
-            margin-left: 20px;
-            margin-right: 20px;
-        }
-        h2 {
-            font-size: 18px;
-            margin-top: 10px;
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 4px;
-        }
-        h3 {
-            font-size: 15px;
-            margin-top: 18px;
-        }
-        label {
-            display: inline;
-            margin-top: 10px;
-            font-size: 13px;
-        }
-        input {
-            width: 160px;
-            padding: 5px 7px;
-            margin-top: 3px;
-            font-size: 13px;
-            border: 1px solid #ccc;
-            border-radius: 2px;
-            float: right;
-        }
-        .input-group {
-            min-width: 230px;
-        }
-        button {
-            margin-top: 15px;
-            padding: 7px 16px;
-            font-size: 13px;
-            border-radius: 3px;
-            border: none;
-            background-color: #0078d4;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #005a9e;
-        }
-        button.secondary {
-            background-color: #f3f3f3;
-            color: #333;
-            border: 1px solid #ccc;
-        }
-        button.secondary:hover {
-            background-color: #e5e5e5;
-        }
-        .error {
-            margin-top: 10px;
-            padding: 8px 10px;
-            border-radius: 3px;
-            background-color: #fde7e9;
-            color: #a80000;
-            font-size: 13px;
-        }
-        .summary {
-            margin-top: 20px;
-            padding: 12px 15px;
-            background: #f7f7f7;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            font-size: 13px;
-        }
-        .summary p {
-            margin: 4px 0;
-        }
-        .charts {
-            margin-top: 20px;
+
+        .mode {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 20px
         }
-        @media (max-width: 800px) {
-            .charts {
-                grid-template-columns: 1fr;
-            }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 18px
         }
-        table {
-            border-collapse: collapse;
-            margin-top: 10px;
+
+        .primary {
+            background: #0078d4;
+            color: #fff
+        }
+
+        .back {
+            background: #666;
+            color: #fff
+        }
+
+        .success {
+            background: #107c10;
+            color: #fff
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px
+        }
+
+        input {
             width: 100%;
-            font-size: 12px;
+            padding: 8px;
+            box-sizing: border-box
         }
-        th, td {
+
+        .result {
+            background: #eef6ff;
+            padding: 12px;
+            border-left: 4px solid #0078d4;
+            margin: 15px 0
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px
+        }
+
+        th,
+        td {
             border: 1px solid #ddd;
-            padding: 4px 5px;
-            text-align: right;
+            padding: 6px;
+            text-align: center
         }
+
         th {
-            background: #fafafa;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-        td:first-child, th:first-child {
-            text-align: left;
-        }
-        .schedule-container {
-            margin-top: 20px;
-        }
-        .schedule-table-wrapper {
-            max-height: 400px;
-            overflow: auto;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            margin-top: 8px;
-        }
-        footer {
-            text-align: center;
-            font-size: 12px;
-            color: #777;
-            padding: 10px 0 20px 0;
+            background: #0078d4;
+            color: #fff
         }
     </style>
 </head>
+
 <body>
-
-<header>
-    <h1>Translation &amp; Review Scheduler</h1>
-    <p>Forecast translation and review workload based on team capacity, backlog, and incoming work.</p>
-</header>
-
-<div class="container">
-    <h2>Inputs</h2>
-
-        <div class="row">
-            <div class="col">
-                <label>Number of Translators
-                <span
-                title="Number of translators working on this backlog.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
-                style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="translators" type="number" value="1" min="0" step="0.1">
-            </div>
-            <div class="col">
-                <label>Number of Reviewers
-                <span
-                    title="Number of reviewers working on this backlog.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="reviewers" type="number" value="1" min="0" step="0.1">
-            </div>
+    <div class='container'>
+        <div id='home' class='card'>
+            <h1>Translation Planning Assistant</h1>
+            <div class='mode'><button class='primary' onclick="showPage('deliveryPage')">Task Completion Estimator</button>
+                    <button class='primary' onclick="showPage('targetPage')">Words/Day to meet Target Date</button></div>
         </div>
-    <div class="subcontainer">
-        <div class="row">
-            <div class="col">
-                <label>Translation throughput
-                <span
-                    title="Average translation throughput per translator.&#10;&#10;Default: 2,000 words per day.&#10;&#10;Adjust as needed if you have more accurate productivity data."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="tp" type="number" value="2000" min="0">
-            </div>
-            <div class="col">
-                <label>Review throughput
-                <span
-                    title="Average review throughput per reviewer.&#10;&#10;Default: 4,000 words per day.&#10;&#10;Adjust as needed if you have more accurate productivity data."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="rp" type="number" value="4000" min="0">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <label>Translation backlog
-                <span
-                    title="The number of untranslated words waiting to be worked on at the start of the forecast."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="tVolume" type="number" value="0" min="0">
-            </div>
-            <div class="col">
-                <label>Review backlog
-                <span
-                    title="The number of translated words that are waiting for review at the start of the forecast.&#10;&#10;Leave this value at 0 if no translated content is currently awaiting review."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="rVolume" type="number" value="0" min="0">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <label>Incoming words per day
-                <span
-                    title="New work added each day during the forecast period. For example, if 1000 words arrive daily, enter 1000.&#10;&#10;If you're only looking at existing known translation volume, leave this value at 0."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="incoming" type="number" value="0" min="0">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <label>Forecast period (days)
-                <span
-                    title="The number of calendar days to include in the forecast.&#10;&#10;Increase this value if the translation backlog is not expected to be cleared within the current forecast period."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="days" type="number" value="20" min="1">
-            </div>
-        </div>
+        <div id='deliveryPage' class='card hidden'><button class='back' onclick='goHome()'>Back</button>
+            <h2>Task Completion Estimator</h2>
+            <!-- Row 1 -->
+<div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div>
+        <label>Start Date
+        <span title="Select the date when translation work begins."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="startDate" type="date" required>
+        
     </div>
-        <div class="row">
-            <div class="col">
-                <label>Start date
-                <span
-                    title="The first day of the forecast.&#10;&#10;If left blank, the start date is today."
-                    style="cursor:help;color:#0078d4;">ⓘ</span>
-                </label>
-                <input id="startDate" type="date">
-            </div>
+    <div>
+        <label>Words to be translated and approved
+        <span title="Enter amount of words to translate and approve."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="wordCount"
+        type="number"
+        value="25000"
+        min="1"
+        step="1"
+        required>
+        
+    </div>
+</div>
+<br>
+<!-- Row 2 -->
+<div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div>
+        <label>Number of translators working on the task
+        <span title="Enter number of translators working on the task.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="translators" type="number" value="1" min="0.1" step="0.1">
+        
+    </div>
+    <div>
+        <label>Average words translated per translator per day
+        <span title="Enter average translation throughput per translator.&#10;&#10;Default set to 2000 words per day.&#10;&#10;Adjust up/down as needed if you have more accurate productivity data."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+       <input id="wordsPerTranslator"
+       type="number"
+       value="2000"
+       min="1"
+       step="1"
+       required>
+        
+    </div>
+</div>
+<br>
+<!-- Row 3 -->
+<div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div>
+        <label>Number of approvers working on the task
+        <span title="Enter number of approvers working on the task.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="reviewers" 
+        type="number" 
+        value="1" 
+        min="0.1" 
+        step="0.1">
+        
+    </div>
+    <div>
+        <label>Average translated words approved per approver per day
+        <span title="Enter average approval throughput per approver.&#10;&#10;Default set to 4000 words per day.&#10;&#10;Adjust up/down as needed if you have more accurate productivity data."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+       <input id="wordsPerReviewer"
+        type="number"
+        value="4000"
+        min="1"
+        step="1"
+        required>
+        
+    </div>
+</div>
+<br>
+<!-- Row 4 -->
+<button class="success" onclick="calculateDelivery()">
+    Calculate
+</button>
+<div id="deliveryResults"></div>
         </div>
-        <div class="row">
-            <div class="col">
-                <button onclick="runForecast()">Run Forecast</button>
-                <br>
-            </div>
-        </div>
-
-        <div id="error" class="error" style="display:none;"></div>
-        <div id="summary" class="summary" style="display:none;"></div>
-        <div class="charts" id="chartsSection" style="display:none;">
+        <div id='targetPage' class='card hidden'><button class='back' onclick='goHome()'>Back</button>
+            <h2>Words/Day to meet Target Date</h2>
             <div>
-                <br>
-                <h2>Translation Backlog Over Time
-                <span
-                    title="Shows how the translation backlog is expected to change over time.&#10;&#10;A downward trend indicates the backlog is being reduced.&#10;An upward trend indicates new work is arriving faster than it can be translated."
-                    style="cursor:help;color:#0078d4;"
-                >
-                    ⓘ
-                </span>
-                </h2>
-                <canvas id="translatorChart"></canvas>
-            </div>
-            <div>
-                <br><br>
-                <h2>Review Queue Over Time
-                <span
-                    title="Shows how the review backlog is expected to change over time.
-                    &#10;A downward trend indicates the review queue is shrinking.
-                    &#10;A value of 0 means reviewers have no waiting work. It does not necessarily mean all translation work has been completed.
-                    &#10;An upward trend indicates the review queue is growing.
-                    &#10;&#10;Translation completed on a given day becomes available for review on the following workday."
-                    style="cursor:help;color:#0078d4;"
-                >
-                    ⓘ
-                </span>
-                </h2>
-                <canvas id="reviewChart"></canvas>
-            </div>
-        </div>
 
-    <div class="schedule-container" id="scheduleSection" style="display:none;">
-        <h2>
-            <br>
-            Daily schedule
-            <button class="secondary" id="toggleScheduleBtn" onclick="toggleSchedule()">Hide schedule</button>
-        </h2>
-        <div class="schedule-table-wrapper" id="scheduleWrapper">
-            <table id="scheduleTable"></table>
-        </div>
+    <div style="margin-bottom:20px;">
+        <label>Start Date
+         <span title="Select the date when translation work begins."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="targetStart" type="date" required>
+
     </div>
 
+    <div style="margin-bottom:20px;">
+        <label>Target Date
+        <span title="Select the target date for when you want the task to be completed."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="targetDeadline" type="date" required>
+        
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <label>Words to be Translated and Approved
+        <span title="Enter amount of words to translate and approve."
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="targetWords" type="number" value="25000" min="1" step="1">
+        
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <label>Number of Translators Working on the Task
+        <span title="Enter number of translators working on the task.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="targetTranslators" type="number" value="1" min="0.1" step="0.1">
+        
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <label>Number of approvers working on this task
+         <span title="Enter number of approvers working on the task.&#10;&#10;You can enter decimals:&#10;1 = full-time&#10;0.5 = half-time"
+        style="cursor:help;color:#0078d4;font-weight:bold;">❓</span>
+        </label>
+        <input id="targetReviewers" type="number" value="1" min="0.1" step="0.1">
+        
+    </div>
+
+</div>
+
+<button class='success' onclick='calculateTarget()'>
+    Calculate
+</button>
+
+
+<div id='targetResults'></div>
+</div>
 
 <script>
-    let translatorChartInstance = null;
-    let reviewChartInstance = null;
+function calculateDelivery() {
+    const start = new Date(el('startDate').value);
 
-    function showError(message) {
-        const errDiv = document.getElementById("error");
-        errDiv.style.display = "block";
-        errDiv.textContent = message;
+    if (isNaN(start)) {
+        alert("Please select a valid start date.");
+        return;
     }
 
-    function clearError() {
-        const errDiv = document.getElementById("error");
-        errDiv.style.display = "none";
-        errDiv.textContent = "";
+    const words = +el('wordCount').value;
+    if (words <= 0) {
+    alert("Enter a word count greater than 0. A value of 0 means there is no translation work to plan.");
+    return;
+    }
+    const translators = +el('translators').value;
+    const reviewers = +el('reviewers').value;
+    const wordsPerTranslator = +el('wordsPerTranslator').value;
+    const wordsPerReviewer = +el('wordsPerReviewer').value;
+    if (translators <= 0) {
+    alert("Number of translators must be greater than zero.");
+    return;
     }
 
-    function validateInputs() {
-        const fields = [
-            { id: "translators", label: "Number of Translators", min: 0 },
-            { id: "reviewers", label: "Number of Reviewers", min: 0 },
-            { id: "tp", label: "Translator productivity", min: 0 },
-            { id: "rp", label: "Reviewer productivity", min: 0 },
-            { id: "tVolume", label: "Untranslated volume", min: 0 },
-            { id: "rVolume", label: "Review volume", min: 0 },
-            { id: "incoming", label: "Incoming words per day", min: 0 },
-            { id: "days", label: "Forecast period (days)", min: 1 }
-        ];
-
-        for (const f of fields) {
-            const el = document.getElementById(f.id);
-            const val = el.value.trim();
-            if (val === "") {
-                showError(`Please enter a value for "${f.label}".`);
-                el.focus();
-                return false;
-            }
-            const num = Number(val);
-            if (isNaN(num) || num < f.min) {
-                showError(`"${f.label}" must be a number ≥ ${f.min}.`);
-                el.focus();
-                return false;
-            }
-        }
-        return true;
+    if (reviewers <= 0) {
+    alert("Number of approvers must be greater than zero.");
+    return;
     }
 
-    function toggleSchedule() {
-        const wrapper = document.getElementById("scheduleWrapper");
-        const btn = document.getElementById("toggleScheduleBtn");
-        if (wrapper.style.display === "none") {
-            wrapper.style.display = "block";
-            btn.textContent = "Hide schedule";
-        } else {
-            wrapper.style.display = "none";
-            btn.textContent = "Show schedule";
-        }
+    if (wordsPerTranslator < 1) {
+    alert("Average words translated per translator per day must be at least 1.");
+    return;
     }
 
-    function runForecast() {
-        clearError();
-        if (!validateInputs()) {
-            return;
-        }
+    if (wordsPerReviewer < 1) {
+    alert("Average translated words approved per approver per day must be at least 1.");
+    return;
+    }
 
-        const translators = +document.getElementById("translators").value;
-        const reviewers = +document.getElementById("reviewers").value;
-        const tp = +document.getElementById("tp").value;
-        const rp = +document.getElementById("rp").value;
-        const incoming = +document.getElementById("incoming").value;
-        const simDays = +document.getElementById("days").value;
+    const translationDays =
+        Math.ceil(words / (translators * wordsPerTranslator));
 
-        let tVolume = +document.getElementById("tVolume").value;
-        let rVolume = +document.getElementById("rVolume").value;
-        
-        const initialBacklog = tVolume;
-        let remainingOriginalBacklog = initialBacklog;
-        let currentBacklogCompletionDate = null;
+    const approvalDays =
+        Math.ceil(words / (reviewers * wordsPerReviewer));
 
-	const startDateInput = document.getElementById("startDate").value;
-	// Parse "YYYY-MM-DD" as a LOCAL date (midnight in the user's timezone)
-	function parseLocalYMD(ymd) {
-	if (!ymd) return new Date(); // default to today (local)
-	const [y, m, d] = ymd.split("-").map(Number);
-	return new Date(y, m - 1, d); // months are 0-based; this is local time
+    const totalDays =
+    Math.max(
+        translationDays,
+        approvalDays
+    ) + 1;
+
+    const completionDate =
+        addWorkingDays(start, totalDays);
+
+    el('deliveryResults').innerHTML = `
+        <div class="result">
+            <p><b>Translation Effort:</b> ${translationDays} working days</p>
+            <p><b>Approval Effort:</b> ${approvalDays} working days</p>
+            <p><b>Total Task Duration:</b> ${totalDays} working days</p>
+            <p><b>Estimated Completion Date:</b> ${fmt(completionDate)}</p>
+            <p><b>Planning assumptions:</b></p>
+            <ul>
+                <li>Content can be approved starting the next working day after it is translated.</li>
+                <li>No translation or approval work is performed on Saturdays or Sundays.</li>
+                <li>Public holidays falling on weekdays are not excluded.</li>
+            </ul>
+        </div>
+    `;
+    }
+
+    function el(id) { return document.getElementById(id) }
+    function showPage(id) { 
+        el('home').classList.add('hidden'); 
+        el('deliveryPage').classList.add('hidden'); 
+        el('targetPage').classList.add('hidden'); 
+        el(id).classList.remove('hidden') } 
+    function goHome() { el('home').classList.remove('hidden'); 
+        el('deliveryPage').classList.add('hidden'); 
+        el('targetPage').classList.add('hidden') } 
+    function fmt(d) {
+    return d.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
 }
 
-let startDate = parseLocalYMD(startDateInput);
+function calculateTarget() {
 
-        const tCap = translators * tp;
-        const rCap = reviewers * rp;
+    const s = new Date(el('targetStart').value);
+    const d = new Date(el('targetDeadline').value);
+
+    if (isNaN(s) || isNaN(d)) {
+        alert("Please select valid dates.");
+        return;
+    }
+
+    if (d < s) {
+        alert("Deadline cannot be earlier than the start date.");
+        return;
+    }
+
+    const words = +el('targetWords').value;
+
+    if (words <= 0) {
+    alert("Enter a word count greater than 0. A value of 0 means there is no translation work to plan.");
+    return;
+    }
+
+    const t = +el('targetTranslators').value;
+    const r = +el('targetReviewers').value;
+
+    if (t <= 0 || r <= 0) {
+        alert("Translator and approver counts must be greater than zero.");
+        return;
+    }
+
+    const days = Math.max(1, workingDays(s, d));
+    const perDay = Math.ceil(words / days);
+
+    el('targetResults').innerHTML = `
+        <div class='result'>
+        <p><b>Time Available:</b> ${days} working days</p>
         
-        const netCapacity = tCap - incoming;
-        const reviewNetCapacity = rCap - tCap;
+        <p><b>Daily Translation Goal:</b></p>
+        <p>• Team total: ${perDay} words/day</p>
+        <p>• Each translator: ${Math.ceil(perDay / t)} words/day</p>
 
-        let finishDate = null;
-        let totalDelta = 0;
-        let reviewIncoming = 0;
+        <p><b>Daily Approval Goal:</b></p>
+        <p>• Team total: ${perDay} words/day</p>
+        <p>• Each approver: ${Math.ceil(perDay / r)} words/day</p>
+        </div>`;
+    }
 
-        const labels = [];
-        const tVolumeSeries = [];
-        const rVolumeSeries = [];
+function workingDays(s, e) 
+    { let n = 0, d = new Date(s); while (d <= e) 
+    { let g = d.getDay(); if (g !== 0 && g !== 6) n++; d.setDate(d.getDate() + 1) } return n } 
 
-        let tableHtml = `
-            <tr>
-                <th>Date</th>
-                <th>Working?</th>
-                <th>Incoming</th>
-                <th>Translation Capacity</th>
-                <th>Translation Volume Start</th>
-                <th>Translation Work</th>
-                <th>Translation Volume End</th>
-                <th>Review Volume Start</th>
-                <th>Review Incoming</th>
-                <th>Review Capacity</th>
-                <th>Review Work</th>
-                <th>Review Volume End</th>
-            </tr>
-        `;
+const today = new Date();
 
-        for (let i = 0; i < simDays; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
+function addWorkingDays(date, days) {
+    let result = new Date(date);
 
-            const dayOfWeek = date.getDay();
-            const working = (dayOfWeek !== 0 && dayOfWeek !== 6);
+    while (days > 0) {
+        result.setDate(result.getDate() + 1);
 
-            const dateStr = date.toISOString().split("T")[0];
-
-            const tStart = tVolume;
-            const rStart = rVolume;
-
-            const tWork = working ? Math.min(tCap, tVolume) : 0;
-            if (remainingOriginalBacklog > 0) {
-                remainingOriginalBacklog -= tWork;
-                if (
-                    !currentBacklogCompletionDate &&
-                    remainingOriginalBacklog <= 0
-                ) {
-                    currentBacklogCompletionDate = dateStr;
-                }
-            }
-            const rWork = working ? Math.min(rCap, rVolume + reviewIncoming) : 0;
-
-            const tEnd = Math.max(tVolume - tWork + incoming, 0);
-            const rEnd = Math.max(rVolume + reviewIncoming - rWork, 0);
-
-            totalDelta += (incoming - tWork);
-
-            labels.push(dateStr);
-            tVolumeSeries.push(Math.max(tEnd, 0));
-            rVolumeSeries.push(Math.max(rEnd, 0));
-
-            tableHtml += `
-                <tr>
-                    <td>${dateStr}</td>
-                    <td>${working ? "Yes" : "No"}</td>
-                    <td>${incoming}</td>
-                    <td>${tCap}</td>
-                    <td>${tStart}</td>
-                    <td>${tWork}</td>
-                    <td>${tEnd}</td>
-                    <td>${rStart}</td>
-                    <td>${reviewIncoming}</td>
-                    <td>${rCap}</td>
-                    <td>${rWork}</td>
-                    <td>${rEnd}</td>
-                </tr>
-            `;
-
-            tVolume = tEnd;
-            rVolume = rEnd;
-            // Translation completed today becomes available for review on the following workday.
-            reviewIncoming = tWork;
-
-            if (!finishDate && tEnd <= 0 && rEnd <= 0) {
-                finishDate = dateStr;
-            }
+        if (result.getDay() !== 0 && result.getDay() !== 6) {
+            days--;
         }
+    }
 
-        const summaryDiv = document.getElementById("summary");
-summaryDiv.style.display = "block";
-
-summaryDiv.innerHTML = `
-    <h2>Summary</h2>
-
-${
-    incoming === 0
-        ? `
-        <div class="row">
-            <strong>Estimated backlog completion:</strong>
-            ${
-                finishDate
-                    ? finishDate
-                    : `Not within the next ${simDays} days`
-            }
-        </div>
-        `
-        : `
-        <div class="row">
-            <strong>Workload status:</strong>
-            ${
-                netCapacity > 0
-                    ? `✅ Team capacity exceeds incoming work by ${netCapacity.toLocaleString()} words/day`
-                    : netCapacity < 0
-                        ? `⚠️ Incoming work exceeds capacity by ${Math.abs(netCapacity).toLocaleString()} words/day`
-                        : `➖ Capacity matches incoming work`
-            }
-        </div>
-
-        <div class="row">
-            <strong>Current backlog completion:</strong>
-           ${
-               initialBacklog === 0
-                    ? "No existing backlog"
-                    : currentBacklogCompletionDate
-                        ? currentBacklogCompletionDate
-                        : `Not within the next ${simDays} days`
-            }
-        </div>
-        `
+    return result;
 }
-    
-    <div class="row">
-        ${
-            netCapacity > 0
-                ? `<span style="color:#107c10;font-weight:bold;">✅ Translation backlog can shrink by up to ${netCapacity.toFixed(0)} words/day</span>`
-                : netCapacity < 0
-                    ? `<span style="color:#d83b01;font-weight:bold;">⚠️ Translation backlog will grow by ${Math.abs(netCapacity).toFixed(0)} words/day</span>`
-                    : `<span style="color:#605e5c;font-weight:bold;">➖ Translation capacity exactly matches incoming work</span>`
-        }
-    </div>
 
-    <div class="row">
-    <strong>Workflow bottleneck:</strong>
-    ${
-        tCap < rCap
-            ? "Translation"
-            : rCap < tCap
-                ? "Review"
-                : "Balanced"
-    }
-</div>
-    <div class="row">
-    ${
-        tCap < rCap
-            ? `✅ Reviewers can keep up with translation output`
-            : rCap < tCap
-                ? `⚠️ Reviewers may become a bottleneck`
-                : `➖ Translation and review capacity are balanced`
-    }
-</div>
-    <div class="row">
-        <strong>Workflow assumption:</strong>
-            Translation completed on a given day becomes available for review on the next day.
-</div>
-    <div class="row">
-        <strong>Translation capacity:</strong>
-        ${tCap.toLocaleString()} words/day
-    </div>
+const twoWeeksAhead = addWorkingDays(today, 10);
 
-    <div class="row">
-        <strong>Review capacity:</strong>
-        ${rCap.toLocaleString()} words/day
-    </div>
-
-    <div class="row">
-        <strong>Incoming work:</strong>
-        ${incoming.toLocaleString()} words/day
-    </div>
-
-    <div class="row">
-        <strong>Net capacity:</strong>
-        ${netCapacity.toLocaleString()} words/day
-    </div>
-
-    <p style="margin-top:8px; font-size:12px; color:#555;">
-        Working days are Monday–Friday. Weekends have 0 capacity but still receive incoming work.
-    </p>
-`;
-
-        const scheduleTable = document.getElementById("scheduleTable");
-        scheduleTable.innerHTML = tableHtml;
-        document.getElementById("scheduleSection").style.display = "block";
-        document.getElementById("scheduleWrapper").style.display = "block";
-        document.getElementById("toggleScheduleBtn").textContent = "Hide schedule";
-
-        const chartsSection = document.getElementById("chartsSection");
-        chartsSection.style.display = "block";
-
-        const translatorCtx = document.getElementById("translatorChart").getContext("2d");
-        const reviewCtx = document.getElementById("reviewChart").getContext("2d");
-
-        if (translatorChartInstance) {
-            translatorChartInstance.destroy();
-        }
-        if (reviewChartInstance) {
-            reviewChartInstance.destroy();
-        }
-
-        translatorChartInstance = new Chart(translatorCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Translator volume (words)',
-                    data: tVolumeSeries,
-                    borderColor: '#0078d4',
-                    backgroundColor: 'rgba(0,120,212,0.1)',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.15
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                },
-                scales: {
-                    x: { ticks: { maxTicksLimit: 10 } },
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        reviewChartInstance = new Chart(reviewCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Review queue (words)',
-                    data: rVolumeSeries,
-                    borderColor: '#107c10',
-                    backgroundColor: 'rgba(16,124,16,0.1)',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.15
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                },
-                scales: {
-                    x: { ticks: { maxTicksLimit: 10 } },
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-    }
+el('startDate').value = today.toISOString().split('T')[0];
+el('targetStart').value = today.toISOString().split('T')[0];
+el('targetDeadline').value = twoWeeksAhead.toISOString().split('T')[0];
 </script>
-
 </body>
+
 </html>
