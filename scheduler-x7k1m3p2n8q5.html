@@ -81,24 +81,7 @@
             border-left: 4px solid #0078d4;
             margin: 15px 0
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 6px;
-            text-align: center
-        }
-
-        th {
-            background: #0078d4;
-            color: #fff
-        }
+       
     </style>
 </head>
 
@@ -106,11 +89,24 @@
     <div class='container'>
         <div id='home' class='card'>
             <h1>Translation Planning Assistant</h1>
-            <div class='mode'><button class='primary' onclick="showPage('deliveryPage')">Task Completion Estimator</button>
-                    <button class='primary' onclick="showPage('targetPage')">Words/Day to meet Target Date</button></div>
+            <div class='mode'><button class='primary' onclick="showPage('deliveryPage')">
+                <span style="font-size:20px;font-weight:600;">When can we finish?</span>
+                <br><br>
+                <span style="font-size:12px;font-weight:normal;"
+                >Estimate when your team is likely to finish based on the total number of words and your typical daily translation and approval pace.
+                </span>
+        </button>
+        <button class="primary" onclick="showPage('targetPage')">
+    <span style="font-size:20px;font-weight:600;">Can we hit this date?</span>
+    <br><br>
+                <span style="font-size:12px;font-weight:normal;">
+                Calculate how many words your team needs to translate and approve each day to meet a target delivery date.
+                </span>
+</button>
+        </div>
         </div>
         <div id='deliveryPage' class='card hidden'><button class='back' onclick='goHome()'>Back</button>
-            <h2>Task Completion Estimator</h2>
+            <h2>When can we finish?</h2>
             <!-- Row 1 -->
 <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
     <div>
@@ -197,7 +193,7 @@
 <div id="deliveryResults"></div>
         </div>
         <div id='targetPage' class='card hidden'><button class='back' onclick='goHome()'>Back</button>
-            <h2>Words/Day to meet Target Date</h2>
+            <h2>Can we hit this date?</h2>
             <div>
 
     <div style="margin-bottom:20px;">
@@ -316,7 +312,7 @@ function calculateDelivery() {
             <p><b>Estimated Completion Date:</b> ${fmt(completionDate)}</p>
             <p><b>Planning assumptions:</b></p>
             <ul>
-                <li>Content can be approved starting the next working day after it is translated.</li>
+                <li>Approval begins one working day after translation starts, and the task is complete when all content has been translated and approved.</li>
                 <li>No translation or approval work is performed on Saturdays or Sundays.</li>
                 <li>Public holidays falling on weekdays are not excluded.</li>
             </ul>
