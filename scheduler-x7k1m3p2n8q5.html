@@ -97,7 +97,7 @@
                 </span>
         </button>
         <button class="primary" onclick="showPage('targetPage')">
-    <span style="font-size:20px;font-weight:600;">Can we hit this date?</span>
+    <span style="font-size:20px;font-weight:600;">Can we meet this target date?</span>
     <br><br>
                 <span style="font-size:12px;font-weight:normal;">
                 Calculate how many words your team needs to translate and approve each day to meet a target delivery date.
@@ -193,7 +193,7 @@
 <div id="deliveryResults"></div>
         </div>
         <div id='targetPage' class='card hidden'><button class='back' onclick='goHome()'>Back</button>
-            <h2>Can we hit this date?</h2>
+            <h2>Can we meet this target date?</h2>
             <div>
 
     <div style="margin-bottom:20px;">
@@ -252,6 +252,34 @@
 </div>
 
 <script>
+function confirmUnusualThroughput(wordsPerTranslator, wordsPerReviewer) {
+
+    const warnings = [];
+
+    if (wordsPerTranslator <= 500 || wordsPerTranslator >= 4000) {
+        warnings.push(
+            `Translation throughput: ${wordsPerTranslator.toLocaleString()} words/day`
+        );
+    }
+
+    if (wordsPerReviewer <= 1000 || wordsPerReviewer >= 10000) {
+        warnings.push(
+            `Approval throughput: ${wordsPerReviewer.toLocaleString()} words/day`
+        );
+    }
+
+    if (warnings.length === 0) {
+        return true;
+    }
+
+    return confirm(
+        `Throughput Check\n\n` +
+        `${warnings.join('\n')}\n\n` +
+        `One or more values fall outside the typical planning range and may significantly affect schedule estimates.\n\n` +
+        `Do you want to continue?`
+    );
+    }
+
 function calculateDelivery() {
     const start = new Date(el('startDate').value);
 
@@ -267,8 +295,35 @@ function calculateDelivery() {
     }
     const translators = +el('translators').value;
     const reviewers = +el('reviewers').value;
+    if (translators >= 10 || reviewers >= 10) {
+
+    const warnings = [];
+
+    if (translators >= 10) {
+        warnings.push(`Translators: ${translators}`);
+    }
+
+    if (reviewers >= 10) {
+        warnings.push(`Approvers: ${reviewers}`);
+    }
+
+    const proceed = confirm(
+        `Team Size Check\n\n` +
+        warnings.join('\n') +
+        `\n\n` +
+        `Values of 10 or more are uncommon and may indicate a data entry error.\n\n` +
+        `Do you want to continue?`
+    );
+
+    if (!proceed) {
+        return;
+    }
+    }
     const wordsPerTranslator = +el('wordsPerTranslator').value;
     const wordsPerReviewer = +el('wordsPerReviewer').value;
+    if (!confirmUnusualThroughput(wordsPerTranslator, wordsPerReviewer)) {
+    return;
+    }
     if (translators <= 0) {
     alert("Number of translators must be greater than zero.");
     return;
@@ -362,6 +417,30 @@ function calculateTarget() {
 
     const t = +el('targetTranslators').value;
     const r = +el('targetReviewers').value;
+    if (t >= 10 || r >= 10) {
+
+    const warnings = [];
+
+    if (t >= 10) {
+        warnings.push(`Translators: ${t}`);
+    }
+
+    if (r >= 10) {
+        warnings.push(`Approvers: ${r}`);
+    }
+
+    const proceed = confirm(
+        `Team Size Check\n\n` +
+        warnings.join('\n') +
+        `\n\n` +
+        `Values of 10 or more are uncommon and may indicate a data entry error.\n\n` +
+        `Do you want to continue?`
+    );
+
+    if (!proceed) {
+        return;
+    }
+    }
 
     if (t <= 0 || r <= 0) {
         alert("Translator and approver counts must be greater than zero.");
